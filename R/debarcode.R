@@ -40,6 +40,7 @@ debarcode <- function(
   output_dir = ".", create_output_dir = TRUE,
   b = 1/8, # asinh transformation parameter: FCM = 1/150, CyTOF = 1/8 (v. MetaCyto vignette)
   excluded_transform_channels_re = stringr::regex("time|event_length", ignore_case = TRUE),
+  output_transformed_events = FALSE,
   outfile_prefix = "", outfile_suffix = "", # also possibly 'NULL'
   filename_sample_sep = "-",
   ...
@@ -57,7 +58,7 @@ debarcode <- function(
   table(sample_id) %>% print
 
   ## Split barcoded samples & remove unassigned "0" events
-  ffs <- flowCore::split(ff0, sample_id, flowSet = FALSE)# %>% `[[<-`("0", NULL)
+  ffs <- flowCore::split(ifelse(output_transformed_events, tff, ff0), sample_id, flowSet = FALSE)# %>% `[[<-`("0", NULL)
 
   if (create_output_dir && !dir.exists(output_dir))
     dir.create(output_dir, recursive = TRUE)
