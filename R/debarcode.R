@@ -43,6 +43,7 @@ debarcode <- function(
   output_transformed_events = FALSE,
   outfile_prefix = "", outfile_suffix = "", # also possibly 'NULL'
   filename_sample_sep = "-",
+  ids_only = FALSE, # If TRUE, return only vector of sample IDs
   ...
 )
 {
@@ -56,6 +57,9 @@ debarcode <- function(
   ## Debarcode
   sample_id <- CATALYST_debarcode(tff, key)
   table(sample_id) %>% print
+
+  if (ids_only)
+    return (sample_id)
 
   ## Split barcoded samples & remove unassigned "0" events
   ffs <- flowCore::split(ifelse(output_transformed_events, tff, ff0), sample_id, flowSet = FALSE)# %>% `[[<-`("0", NULL)
@@ -78,7 +82,7 @@ debarcode <- function(
       fcsFilePath
     }, simplify = TRUE)
 
-  fcsFilePaths
+  structure(fcsFilePaths, transformed = output_transformed_events, sample_id = sample_id)
 }
 
 
