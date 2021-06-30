@@ -62,7 +62,8 @@ debarcode <- function(
     return (sample_id)
 
   ## Split barcoded samples & remove unassigned "0" events
-  ffs <- flowCore::split(ifelse(output_transformed_events, tff, ff0), sample_id, flowSet = FALSE)# %>% `[[<-`("0", NULL)
+  ff <- ff0; if (output_transformed_events) ff <- tff
+  ffs <- flowCore::split(ff, sample_id, flowSet = FALSE)# %>% `[[<-`("0", NULL)
 
   if (create_output_dir && !dir.exists(output_dir))
     dir.create(output_dir, recursive = TRUE)
