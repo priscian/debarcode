@@ -7,8 +7,9 @@ CATALYST_debarcode <- function(
   if (is.null(barcoding_key))
     return (rep(basename(flowCore::description(x)$FILENAME), NROW(x)))
 
-  ## TODO: Evaluate 'barcoding_key' if it's an expression...?
   bc_key <- barcoding_key
+
+  plinth::poly_eval(barcoding_key$process_key)
 
   row_data <- flowCore::pData(flowCore::parameters(x)) %>%
     dplyr::select(name, desc) %>%
@@ -33,8 +34,7 @@ CATALYST_debarcode <- function(
 }
 
 
-#' @export
-debarcode <- function(
+debarcode_single <- function(
   input_path,
   key,
   output_dir = ".", create_output_dir = TRUE,
@@ -44,6 +44,7 @@ debarcode <- function(
   outfile_prefix = "", outfile_suffix = "", # also possibly 'NULL'
   filename_sample_sep = "-",
   ids_only = FALSE, # If TRUE, return only vector of sample IDs
+  ignore_unassigned_files = TRUE,
   ...
 )
 {
@@ -80,10 +81,42 @@ debarcode <- function(
       flowCore::write.FCS(ff, filename = fcsFilePath)
       cat(". Done.", fill = TRUE)
 
-      fcsFilePath
-    }, simplify = TRUE)
+      if (ignore_unassigned_files && i == "0")
+        return (NULL)
 
-  structure(fcsFilePaths, transformed = output_transformed_events, sample_id = sample_id)
+      fcsFilePath
+    }, simplify = FALSE) %>% unlist %>% as.vector
+
+  ret_val <- structure(fcsFilePaths, transformed = output_transformed_events, sample_id = sample_id)
+
+  ret_val
+}
+
+
+#' @export
+## Good idea, but I need more control:
+#debarcode <- Vectorize(FUN = debarcode_single, vectorize.args = c("input_path", "key", "output_dir"))
+debarcode <- function(
+  input_path, # Any vector of FCS files
+  key, # Named list of barcoding keys w/ names exactly same as 'input_path' elements needing deconvolution
+  output_dir = ".", # Vector of output directories, recycled to 'length(key)'
+  ... # Arguments passed on to 'debarcode_single()'
+)
+{
+  outputDirs <- structure(rep(output_dir, length.out = length(key)), .Names = names(key))
+
+  pp <- sapply(input_path,
+    function(a)
+    {
+      if (is.null(key[[a]]))
+        return (a)
+
+      debarcode_single(input_path = a, key = key[[a]], output_dir = outputDirs[a])
+    }, simplify = FALSE)
+
+  ret_val <- structure(pp %>% unlist %>% as.vector, details = pp)
+
+  ret_val
 }
 
 
@@ -103,4 +136,47 @@ cards <- function(
   tab <- read.table(text = x, header = header, as.is = as.is, check.names = check.names, stringsAsFactors = stringsAsFactors, ...)
 
   return (tab)
+}
+
+
+## Drop-in update of 'premessa::concatenate_fcs_files()' to allow args to 'flowCore::read.FCS()'
+#' @export
+concatenate_fcs_files <- function(
+  files.list,
+  output.file = NULL,
+  create_output_dir = TRUE,
+  read.FCS... = list(), # Arguments to 'flowCore::read.FCS()'
+  ... # Unused
+)
+{
+  if (create_output_dir && !dir.exists(dirname(output.file)))
+    dir.create(dirname(output.file), recursive = TRUE)
+
+  read.FCSArgs <- list(
+    filename = NULL,
+    transformation = FALSE,
+    truncate_max_range = FALSE
+  )
+
+  #m <- lapply(files.list, flowCore::read.FCS, ...)
+  m <- lapply(files.list,
+    function(a) {
+      read_FCSArgs <- read.FCSArgs
+      read_FCSArgs$filename = a
+      read_FCSArgs <- utils::modifyList(read_FCSArgs, read.FCS..., keep.null = TRUE)
+
+      do.call(flowCore::read.FCS, read_FCSArgs)
+    })
+
+  flow.frame <- m[[1]]
+  m <- lapply(m, function(x) {
+    flowCore::exprs(x)
+  })
+  m <- do.call(rbind, m)
+
+  ret <- premessa::as_flowFrame(m, flow.frame)
+
+  if (!is.null(output.file))
+    premessa::write_flowFrame(ret, output.file)
+  else return (ret)
 }
