@@ -1,17 +1,15 @@
 Package: debarcode
 Title: Straightforward Deconvolution of Barcoded Cytof Event Data into Separate Files
-Version: 0.2.0
+Version: 0.3.0
 Authors@R: person("Jim", "Java", email = "priscian@gmail.com", role = c("aut", "cre"),
   comment = c(ORCID = "0000-0002-8254-3177"))
 Description: Straightforward deconvolution of barcoded CyTOF event data into separate files.
 Depends: R (>= 3.5.0), magrittr
 Suggests: knitr, pander, testthat
-Imports: utils, tools, methods,
-  rlang, dplyr, textshape,
-  SingleCellExperiment,
-  flowCore, CATALYST
+Imports: textshape, SingleCellExperiment, flowCore, CATALYST, premessa, keystone
+Remotes: github::priscian/keystone, github::priscian/debarcode
 License: Artistic-2.0
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.0

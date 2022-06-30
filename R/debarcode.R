@@ -9,7 +9,7 @@ CATALYST_debarcode <- function(
 
   bc_key <- barcoding_key
 
-  plinth::poly_eval(barcoding_key$process_key)
+  keystone::poly_eval(barcoding_key$process_key)
 
   row_data <- flowCore::pData(flowCore::parameters(x)) %>%
     dplyr::select(name, desc) %>%
@@ -105,7 +105,8 @@ debarcode <- function(
 {
   outputDirs <- structure(rep(output_dir, length.out = length(key)), .Names = names(key))
 
-  pp <- sapply(input_path,
+  #pp <- sapply(input_path,
+  pp <- keystone::psapply(input_path,
     function(a)
     {
       if (is.null(key[[a]]))
@@ -121,23 +122,6 @@ debarcode <- function(
 
 
 ### Utility functions
-
-## Simplify 'read.table()' from 'textConnection()'s; like SAS's 'CARDS' statement.
-#' @export
-cards <- function(
-  x,
-  header = TRUE,
-  as.is = TRUE,
-  check.names = FALSE,
-  stringsAsFactors = FALSE,
-  ...
-)
-{
-  tab <- read.table(text = x, header = header, as.is = as.is, check.names = check.names, stringsAsFactors = stringsAsFactors, ...)
-
-  return (tab)
-}
-
 
 ## Drop-in update of 'premessa::concatenate_fcs_files()' to allow args to 'flowCore::read.FCS()'
 #' @export
