@@ -105,7 +105,6 @@ debarcode <- function(
 {
   outputDirs <- structure(rep(output_dir, length.out = length(key)), .Names = names(key))
 
-  #pp <- sapply(input_path,
   pp <- keystone::psapply(input_path,
     function(a)
     {
