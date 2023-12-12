@@ -7,7 +7,7 @@ Description: Straightforward deconvolution of barcoded CyTOF event data into sep
 Depends: R (>= 3.5.0), magrittr
 Suggests: knitr, pander, testthat
 Imports: textshape, SingleCellExperiment, flowCore, CATALYST, premessa, keystone
-Remotes: github::priscian/keystone, github::priscian/debarcode
+Remotes: github::priscian/keystone, github::priscian/debarcode, github::ParkerICI/premessa
 License: Artistic-2.0
 Encoding: UTF-8
 LazyData: true
